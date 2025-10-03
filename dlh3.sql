@@ -173,18 +173,20 @@ Stored procedures
 
 */
 
-CREATE OR REPLACE PROCEDURE increase_price (IN category TEXT, IN increase NUMERIC)
+--- simple procedure to increase price of all products in a category by a fixed amount
+CREATE OR REPLACE PROCEDURE increase_price (IN p_category TEXT, IN p_increase NUMERIC)
 LANGUAGE SQL
 AS $$
     UPDATE product
-    SET price = price + increase
-    WHERE category = category;
+    SET price = price + p_increase
+    WHERE category = p_category;
 $$; 
 
 SELECT * FROM product WHERE category = 'food';
 
 CALL increase_price ('food', 1.00);
 
+--- more complex procedure to increase price of all products by a percentage
 CREATE OR REPLACE PROCEDURE increase_price_differentiated 
     (IN general_increase_percent NUMERIC, IN food_increase_percent NUMERIC)
 LANGUAGE PLPGSQL
@@ -203,7 +205,7 @@ BEGIN
             UPDATE product
             SET price = price + (price * general_increase_percent / 100)
             WHERE product_nbr = v_product.product_nbr;    
-            RAISE NOTICE 'Increased price of % by % percent', v_product.name, food_increase_percent;        
+            RAISE NOTICE 'Increased price of % by % percent', v_product.name, general_increase_percent;        
         END IF;
     END LOOP;
 END;    
@@ -214,6 +216,64 @@ SELECT category, name, price FROM product
 
 CALL increase_price_differentiated (5, 10);    
 
+--- extend the procedure to have a special increase for snacks
+CREATE OR REPLACE PROCEDURE increase_price_differentiated_2 
+    (IN general_increase_percent NUMERIC, IN food_increase_percent NUMERIC, IN snack_increase_percent NUMERIC)
+LANGUAGE PLPGSQL
+AS $$
+DECLARE 
+    v_product RECORD;
+BEGIN
+    FOR v_product IN SELECT * FROM product
+    LOOP
+        IF v_product.category = 'food' THEN
+            UPDATE product
+            SET price = price + (price * food_increase_percent / 100)
+            WHERE product_nbr = v_product.product_nbr;
+            RAISE NOTICE 'Increased price of % by % percent', v_product.name, food_increase_percent;    
+        ELSIF v_product.category = 'snack' THEN
+            UPDATE product
+            SET price = price + (price * snack_increase_percent / 100)
+            WHERE product_nbr = v_product.product_nbr;
+            RAISE NOTICE 'Increased price of % by % percent', v_product.name, snack_increase_percent;
+        ELSE
+            UPDATE product
+            SET price = price + (price * general_increase_percent / 100)
+            WHERE product_nbr = v_product.product_nbr;    
+            RAISE NOTICE 'Increased price of % by % percent', v_product.name, general_increase_percent;        
+        END IF;
+    END LOOP;
+END;    
+$$; 
+
+CALL increase_price_differentiated_2 (5, 10, 3);  
+
+--- use the simple case statement to do the same
+CREATE OR REPLACE PROCEDURE increase_price_differentiated_3 
+    (IN general_increase_percent NUMERIC, IN food_increase_percent NUMERIC, IN snack_increase_percent NUMERIC)
+LANGUAGE PLPGSQL
+AS $$
+DECLARE 
+    v_product RECORD;
+    v_increase_percent NUMERIC;
+BEGIN
+    FOR v_product IN SELECT * FROM product
+    LOOP
+        v_increase_percent := 
+            CASE v_product.category
+                WHEN 'food' THEN food_increase_percent
+                WHEN 'snack' THEN snack_increase_percent
+                ELSE general_increase_percent
+            END;
+        UPDATE product
+        SET price = price + (price * v_increase_percent / 100)
+        WHERE product_nbr = v_product.product_nbr;    
+        RAISE NOTICE 'Increased price of % by % percent', v_product.name, v_increase_percent;        
+    END LOOP;
+END;    
+$$;
+
+CALL increase_price_differentiated_2 (5, 10, 3); 
 
 /*
 
