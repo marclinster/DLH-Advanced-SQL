@@ -275,6 +275,32 @@ $$;
 
 CALL increase_price_differentiated_2 (5, 10, 3); 
 
+--- functions
+
+CREATE FUNCTION my_mult (p1 INT, p2 INT) RETURNS INT
+AS
+$$
+	BEGIN
+		RETURN p1 * p2;
+	END;
+$$ LANGUAGE PLPGSQL;
+
+SELECT * FROM my_mult (2, 3);
+
+CREATE FUNCTION my_math (p1 INT, p2 INT, p_op text) RETURNS INT
+AS
+$$
+	DECLARE v_result INT;
+	BEGIN
+		IF p_op = 'addition' THEN
+			v_result = p1 + p2;
+		ELSEIF p_op = 'multiplication' THEN
+			v_result = p1 * p2;
+		ELSE v_result = 0;
+		END IF;
+		RETURN v_result;
+	END;
+
 /*
 
 Section: CTEs and Recursion
