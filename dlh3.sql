@@ -1,7 +1,7 @@
 /****************************************************************************************************
 Sample SQL files for the class 'Advanced SQL with Postgres'
-2025 Copyright: Marc Linster
-Last updated Sep 23 2025
+2026 Copyright: Marc Linster
+Last updated February 17 2026
 ****************************************************************************************************/
 
 -- dlh3.sql
@@ -148,11 +148,18 @@ Section Grouping Sets, Rollup, Cube
 
 */
 
-
 SELECT product_category, product_name, sum(quantity) 
     FROM customer_purchase_view
     GROUP BY ROLLUP (product_category, product_name)
     ORDER BY product_category, product_name;
+
+
+SELECT  COALESCE(product_category, 'Total') AS category, 
+        COALESCE(product_name, 'Subtotal ' || product_category) AS name, 
+        sum(quantity) AS quantity
+    FROM customer_purchase_view
+    GROUP BY ROLLUP (product_category, product_name)
+    ORDER BY product_category, product_name ASC NULLS LAST;
 
 SELECT FORMAT ('%s living in %s', customer_name, town) AS customer_town , product_category, product_name, sum(quantity) 
     FROM customer_purchase_view
@@ -173,7 +180,11 @@ Stored procedures
 
 */
 
---- simple procedure to increase price of all products in a category by a fixed amount
+/* simple procedure to increase price of all products in a category by a fixed amount
+this definition is just for training purposes. In real life you would just call the 
+update statement directly without the procedure. 
+The more complex examples below are more realistic use cases for stored procedures. */
+
 CREATE OR REPLACE PROCEDURE increase_price (IN p_category TEXT, IN p_increase NUMERIC)
 LANGUAGE SQL
 AS $$
@@ -185,6 +196,26 @@ $$;
 SELECT * FROM product WHERE category = 'food';
 
 CALL increase_price ('food', 1.00);
+
+--- simple procedure to increase price of all products in a category by a fixed amount
+CREATE OR REPLACE PROCEDURE increase_price2 (IN p_category TEXT, IN p_increase NUMERIC)
+LANGUAGE PLPGSQL
+AS $$
+    DECLARE 
+    v_product RECORD;
+BEGIN
+    FOR v_product IN SELECT * FROM product WHERE category = p_category
+    LOOP
+        UPDATE product
+        SET price = price + p_increase
+        WHERE product_nbr = v_product.product_nbr;    
+        RAISE NOTICE 'Increased price of % by %', v_product.name, p_increase;
+    END LOOP;
+END; $$; 
+
+SELECT * FROM product WHERE category = 'food';
+
+CALL increase_price2 ('food', 1.00);
 
 --- more complex procedure to increase price of all products by a percentage
 CREATE OR REPLACE PROCEDURE increase_price_differentiated 
@@ -300,6 +331,11 @@ $$
 		END IF;
 		RETURN v_result;
 	END;
+$$ LANGUAGE PLPGSQL;
+
+SELECT * FROM my_math(2,3, 'multiplication');
+SELECT * FROM my_math(2,3, 'addition');
+SELECT * FROM my_math(2,3, 'other');
 
 /*
 
@@ -307,6 +343,60 @@ Section: CTEs and Recursion
 
 */
 
+WITH esch_customers AS (
+    SELECT id, first_name, last_name
+    FROM customer
+    WHERE town = 'Esch'
+)
+SELECT * FROM esch_customers;
+
+-- define how much my Esch customers spent in total
+WITH esch_customers AS (
+    SELECT id, first_name, last_name
+    FROM customer
+    WHERE town = 'Esch'
+),
+customer_spend AS (
+    SELECT 
+        cpv.customer_id,
+        SUM(cpv.total_price) AS total_spend
+    FROM customer_purchase_view cpv
+    GROUP BY cpv.customer_id
+)
+SELECT 
+    ec.first_name, 
+    ec.last_name, 
+    cs.total_spend
+FROM esch_customers ec
+    JOIN customer_spend cs ON ec.id = cs.customer_id
+ORDER BY cs.total_spend DESC;
+
+
+WITH top_10_customers AS (
+    SELECT customer_id, SUM(total_price) AS total_spent
+    FROM customer_purchase_view
+    GROUP BY customer_id
+    ORDER BY total_spent DESC
+    LIMIT 10
+),
+top_5_products AS (
+    SELECT product_nbr, SUM(quantity) AS total_qty
+    FROM customer_purchase_view
+    GROUP BY product_nbr
+    ORDER BY total_qty DESC
+    LIMIT 5
+)
+-- what are the top 10 products bought by my overall top 10 customers
+SELECT 
+    pr.name AS product_name, 
+    SUM(cpv.quantity) AS total_qty, 
+    SUM(cpv.total_price) AS total_spent
+FROM customer_purchase_view cpv
+    JOIN top_10_customers tc ON cpv.customer_id = tc.customer_id
+    JOIN top_5_products tp ON cpv.product_nbr = tp.product_nbr
+    JOIN product pr ON cpv.product_nbr = pr.product_nbr
+GROUP BY pr.name
+ORDER BY total_spent DESC;
 
 -- what did my overall top 10 customers buy in March 2025
 
@@ -328,4 +418,20 @@ WHERE cpv.order_date >= '2025-06-01' AND cpv.order_date < '2025-07-01'
 GROUP BY ROLLUP (cpv.customer_name, cpv.product_name)
 ORDER BY cpv.customer_name, total_spent ASC;
 
-select * from customer_purchase_view where customer_name = 'Emma Schneider';
+-- try it out: How many food items did my customers in Esch and Dudelingen buy?
+
+WITH esch_dud_customers AS (
+    SELECT id, first_name, last_name
+    FROM customer
+    WHERE town IN ('Esch', 'Dudelingen')
+)
+SELECT 
+    cpv.customer_name, 
+    SUM(cpv.quantity) AS total_qty
+FROM customer_purchase_view cpv
+    JOIN esch_dud_customers edc ON cpv.customer_id = edc.id
+WHERE cpv.product_category = 'food'
+GROUP BY cpv.customer_name
+ORDER BY cpv.customer_name ASC;
+
+

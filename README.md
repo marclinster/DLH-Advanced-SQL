@@ -1,12 +1,13 @@
 # Advanced SQL with Postgres — Course slides and sample SQL
 
-These slides and example SQL files are for the class "Advanced SQL with Postgres" taught in October 2025 at the Digital Learning Hub Luxembourg (https://www.dlh.lu).
+These slides and example SQL files are for the class "Advanced SQL with Postgres" taught in October 2025 and February 2026
+at the Digital Learning Hub Luxembourg (https://www.dlh.lu).
 
 Repository contents
 
-- `DLH - Advanced SQL - Oct 2025.pdf` — Slides for the course.
+- `DLH - Advanced SQL - March 2026.pdf` — Slides for the course.
 - `setup.sql` — Database setup script to create the sample schema and data used in the exercises.
-- `dlh1.sql`, `dlh3.sql`, `dlh3_data_set.sql`, `dlh4_data_set.sql`, `dlh5.sql` — Example queries and exercise files referenced by the slides.
+- `dlh1.sql`, `dlh2.sql`, `dlh3.sql`, `dlh3_data_set.sql`, `dlh4.sql`,`dlh4_data_set.sql`, `dlh5.sql` — Example queries and exercise files referenced by the slides.
 
 Quick start
 

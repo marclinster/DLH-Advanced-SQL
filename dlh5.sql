@@ -1,7 +1,7 @@
 /****************************************************************************************************
 Sample SQL files for the class 'Advanced SQL with Postgres'
-2025 Copyright: Marc Linster
-Last updated Sep 23 2025
+2026 Copyright: Marc Linster
+Last updated Feb 17 2026
 ****************************************************************************************************/
 -- dlh5.sql
 
