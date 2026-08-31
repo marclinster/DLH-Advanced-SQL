@@ -1,4 +1,0 @@
-
--- run this command from PSQL
-
-\copy address(rue, numero, localite, code_postal, id_caclr_rue, id_caclr_bat, lat_wgs84, lon_wgs84, coord_est_luref, coord_nord_luref, id_geoportail, commune, lau2) FROM 'raw_data/luxembourgaddresses.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8')
