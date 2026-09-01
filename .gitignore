@@ -3,3 +3,4 @@ scratchpad.sql
 load_addresses.txt
 /bup
 .DS_Store
+/raw_data
