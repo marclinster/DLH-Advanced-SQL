@@ -60,3 +60,100 @@ END;
 $$;
 
 CALL assign_random_addresses_to_customers();
+
+/* assign random phone numbers to customers using the following format:
+
+    {
+        "work": {
+            "mobile": "(+352) 123 456 789", 
+            "car": "(+352) 987 654 321",
+            "office": ["(+352) 234 567 890"
+        },
+        "private": {
+            "home": "(+352) 345 678 901", 
+            "mobile": "(+352) 456 789 012",
+            "weekend house": ["(+352) 567 890 123"]
+        }
+    }
+*/
+
+CREATE OR REPLACE PROCEDURE assign_random_phone_numbers_to_customers()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_customer_id INT;
+    v_phone_number TEXT;
+    v_phone_group TEXT;
+    v_phone_label TEXT;
+    v_phone_json_work JSONB;
+    v_phone_json_private JSONB;
+    v_phone_json JSONB;
+    
+BEGIN
+    UPDATE customer SET phone_numbers = NULL;
+    FOR v_customer_id IN SELECT id FROM customer LOOP
+    -- work numbers
+    v_phone_group = 'work';
+    --  random phone number
+    v_phone_number := '(+352) ' || (floor(random() * 900) + 100)::INT || ' ' || (floor(random() * 900) + 100)::INT || ' ' || (floor(random() * 900) + 100) :: INT;
+    v_phone_label := CASE WHEN random() < 0.33 THEN 'mobile' WHEN random() < 0.66 THEN 'car' ELSE 'office' END;
+    v_phone_json := jsonb_build_object(v_phone_label, v_phone_number);
+    -- Assign 30% of the customers a second, different phone number with a different label
+    IF random() < 0.3 THEN
+        v_phone_number := '(+352) ' || (floor(random() * 900) + 100)::INT || ' ' || (floor(random() * 900) + 100)::INT || ' ' || (floor(random() * 900) + 100) :: INT;    
+        v_phone_label := CASE WHEN random() < 0.33 THEN 'mobile' WHEN random() < 0.66 THEN 'car' ELSE 'office' END;
+        v_phone_json := v_phone_json || jsonb_build_object(v_phone_label, v_phone_number);
+    END IF;
+    v_phone_json_work := jsonb_build_object(v_phone_group, v_phone_json);
+    -- private numbers
+    v_phone_group = 'private';
+    v_phone_number := '(+352) ' || (floor(random() * 900) + 100)::INT || ' ' || (floor(random() * 900) + 100    )::INT || ' ' || (floor(random() * 900) + 100) :: INT;
+    v_phone_label := CASE WHEN random() < 0.33 THEN 'home' WHEN random() < 0.66 THEN 'mobile' ELSE 'weekend house' END;
+    v_phone_json := jsonb_build_object(v_phone_label, v_phone_number);
+    -- Assign 30% of the customers a second, different phone number with a different label
+    IF random() < 0.3 THEN
+        v_phone_number := '(+352) ' || (floor(random() * 900) + 100)::INT || ' ' || (floor(random() * 900) + 100)::INT || ' ' || (floor(random() * 900) + 100) :: INT;
+        v_phone_label := CASE WHEN random() < 0.33 THEN 'home' WHEN random() < 0.66 THEN 'mobile' ELSE 'weekend house' END;
+        v_phone_json := v_phone_json || jsonb_build_object(v_phone_label, v_phone_number);
+    END IF;
+    v_phone_json_private := jsonb_build_object(v_phone_group, v_phone_json);
+    v_phone_json := v_phone_json_work || v_phone_json_private;
+        -- Update customer with phone number
+        UPDATE customer 
+        SET phone_numbers = v_phone_json
+        WHERE id = v_customer_id;
+    END LOOP;
+END;
+$$; 
+
+CALL assign_random_phone_numbers_to_customers();
+
+-- assign random email addresses to customers, with the domain being one of "example.com", "test.com", "demo.com"
+-- 30% of the customers should have a second email address with a different domain
+CREATE OR REPLACE PROCEDURE assign_random_email_addresses_to_customers()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    customer_id INT;
+    v_first_name TEXT;
+    v_last_name TEXT;
+    email_domain TEXT;
+    email_json JSONB;
+BEGIN
+    FOR customer_id IN SELECT id FROM customer LOOP
+        SELECT first_name, last_name INTO v_first_name, v_last_name FROM customer WHERE id = customer_id;
+        email_domain := CASE WHEN random() < 0.33 THEN 'example.com' WHEN random() < 0.66 THEN 'test.com' ELSE 'demo.com' END;
+        email_json := jsonb_build_object('email', v_first_name || '.' || v_last_name || customer_id || '@' || email_domain);
+        -- Assign 30% of the customers a second email address with a different domain
+        IF random() < 0.3 THEN
+            email_domain := CASE WHEN random() < 0.33 THEN 'google.com' WHEN random() < 0.66 THEN 'pt.com' ELSE 'microsoft.com' END;
+            email_json := email_json || jsonb_build_object('work_email', v_last_name || '.' || v_first_name || '@' || email_domain);
+        END IF;
+        UPDATE customer 
+        SET email_addresses = email_json
+        WHERE id = customer_id;
+    END LOOP;
+END;
+$$;
+
+call assign_random_email_addresses_to_customers();
