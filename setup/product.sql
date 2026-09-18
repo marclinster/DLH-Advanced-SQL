@@ -29,3 +29,11 @@ INSERT INTO product (product_nbr, category_id, name, price)
 
 SELECT * FROM product JOIN category ON product.category_id = category.id;
 
+CREATE VIEW product_category_vw AS
+SELECT p.product_nbr,
+       category_id,
+       p.name AS product_name,
+       p.price AS product_price,
+       c.name as category_name
+FROM product AS p
+JOIN category AS c ON c.id = p.category_id;

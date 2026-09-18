@@ -395,18 +395,108 @@ SELECT commune,category_name, sum(price * quantity) AS total_sales
     ORDER BY commune, category_name ASC;    
 
 
+
+
+
+/* CTE */
+
+WITH customer_counts AS (
+    SELECT localite, COUNT(DISTINCT customer_id) AS nbr_customers
+    FROM customer_summary_mv
+    GROUP BY localite
+)
+SELECT * FROM customer_counts
+    WHERE nbr_customers > 1
+    ORDER BY nbr_customers DESC;
+
+WITH top_10_customers AS (
+    SELECT customer_id, COUNT(*) AS nbr_purchases
+    FROM customer_summary_mv
+    GROUP BY customer_id
+    ORDER BY nbr_purchases DESC
+    LIMIT 10
+),
+top_10_products AS (
+    SELECT product_nbr, COUNT(*) AS nbr_sales
+    FROM customer_summary_mv
+    GROUP BY product_nbr
+    ORDER BY nbr_sales DESC
+    LIMIT 10
+)
+SELECT product_nbr, nbr_sales FROM top_10_products
+    JOIN customer_summary_mv USING (product_nbr)
+    WHERE customer_id IN (SELECT customer_id FROM top_10_customers)
+    ORDER BY nbr_sales DESC;
+
+select * from /* CTE */
+
+WITH customer_counts AS (
+    SELECT localite, COUNT(DISTINCT customer_id) AS nbr_customers
+    FROM customer_summary_mv
+    GROUP BY localite
+)
+SELECT * FROM customer_counts
+    WHERE nbr_customers > 1
+    ORDER BY nbr_customers DESC;
+
+-- What did my top 10 customers buy in 2025? 
+-- Show the total quantity purchased per product per customer.
+WITH top_10_customers AS (
+    SELECT customer_id, COUNT(*) AS nbr_purchases
+    FROM customer_summary_mv
+    GROUP BY customer_id
+    ORDER BY nbr_purchases DESC
+    LIMIT 10
+)
+SELECT customer_id, first_name, last_name, product_name, SUM(quantity) AS total_quantity FROM customer_summary_mv
+    JOIN top_10_customers USING (customer_id)
+    WHERE date >= '2025-01-01' AND date < '2026-01-01'
+    GROUP BY customer_id, first_name, last_name, product_name
+    ORDER BY customer_id, product_name;
+
+-- What did my top 10 customers buy from the top 10 products in 2025? 
+-- Show the total quantity purchased per product per customer.
+WITH top_10_customers AS (
+    SELECT customer_id, COUNT(*) AS nbr_purchases
+    FROM customer_summary_mv
+    GROUP BY customer_id
+    ORDER BY nbr_purchases DESC
+    LIMIT 10
+),
+top_10_products AS (
+    SELECT product_nbr, COUNT(*) AS nbr_sales
+    FROM customer_summary_mv
+    GROUP BY product_nbr
+    ORDER BY nbr_sales DESC
+    LIMIT 10
+)
+SELECT customer_id, first_name, last_name, product_name, SUM(quantity) AS total_quantity FROM customer_summary_mv
+    JOIN top_10_customers USING (customer_id)
+    JOIN top_10_products USING (product_nbr)
+    WHERE date >= '2025-01-01' AND date < '2026-01-01'
+    GROUP BY customer_id, first_name, last_name, product_name
+    ORDER BY customer_id, product_name;
+
+
+-- Create a CTE to find how many of the TOP 10 food items did my customers in Esch and Duedange buy in 2025?
+WITH top_10_products AS (
+    SELECT product_nbr, COUNT(*) AS nbr_sales
+    FROM customer_summary_mv
+    GROUP BY product_nbr
+    ORDER BY nbr_sales DESC
+    LIMIT 10
+)
+SELECT commune, product_name, SUM(quantity) AS total_quantity FROM customer_summary_mv
+    JOIN top_10_products USING (product_nbr)
+    WHERE date >= '2025-01-01' AND date < '2026-01-01'
+    AND commune IN ('Esch-sur-Alzette', 'Dudelange')
+    GROUP BY commune, product_name
+    ORDER BY commune, product_name;
+
 /*
 
     JSON(B)
 
-Approach:
-- example of a complex JSON doc
-- show pretty printing of JSONB columns
-- explain the JSON path (explain arrays too)
-- show how to access JSONB values using the #> and #>> operators and the JSONB path
-- show how to update JSONB values using the || operator and the jsonb_set function
-- Show queries that select based on JSONB
-- Excercise (customers in Junglinster that have a Twitter handle)
 */
 
 -- use this in psql to pretty print the JSONB columns
@@ -533,104 +623,6 @@ SET social_media = jsonb_set(social_media, '{personal,Twitter}', '"personal_twit
 WHERE id = 1
 RETURNING jsonb_pretty(social_media) AS social_media;
 
-
-/* CTE */
-
-WITH customer_counts AS (
-    SELECT localite, COUNT(DISTINCT customer_id) AS nbr_customers
-    FROM customer_summary_mv
-    GROUP BY localite
-)
-SELECT * FROM customer_counts
-    WHERE nbr_customers > 1
-    ORDER BY nbr_customers DESC;
-
-WITH top_10_customers AS (
-    SELECT customer_id, COUNT(*) AS nbr_purchases
-    FROM customer_summary_mv
-    GROUP BY customer_id
-    ORDER BY nbr_purchases DESC
-    LIMIT 10
-),
-top_10_products AS (
-    SELECT product_nbr, COUNT(*) AS nbr_sales
-    FROM customer_summary_mv
-    GROUP BY product_nbr
-    ORDER BY nbr_sales DESC
-    LIMIT 10
-)
-SELECT product_nbr, nbr_sales FROM top_10_products
-    JOIN customer_summary_mv USING (product_nbr)
-    WHERE customer_id IN (SELECT customer_id FROM top_10_customers)
-    ORDER BY nbr_sales DESC;
-
-select * from /* CTE */
-
-WITH customer_counts AS (
-    SELECT localite, COUNT(DISTINCT customer_id) AS nbr_customers
-    FROM customer_summary_mv
-    GROUP BY localite
-)
-SELECT * FROM customer_counts
-    WHERE nbr_customers > 1
-    ORDER BY nbr_customers DESC;
-
--- What did my top 10 customers buy in 2025? 
--- Show the total quantity purchased per product per customer.
-WITH top_10_customers AS (
-    SELECT customer_id, COUNT(*) AS nbr_purchases
-    FROM customer_summary_mv
-    GROUP BY customer_id
-    ORDER BY nbr_purchases DESC
-    LIMIT 10
-)
-SELECT customer_id, first_name, last_name, product_name, SUM(quantity) AS total_quantity FROM customer_summary_mv
-    JOIN top_10_customers USING (customer_id)
-    WHERE date >= '2025-01-01' AND date < '2026-01-01'
-    GROUP BY customer_id, first_name, last_name, product_name
-    ORDER BY customer_id, product_name;
-
--- What did my top 10 customers buy from the top 10 products in 2025? 
--- Show the total quantity purchased per product per customer.
-WITH top_10_customers AS (
-    SELECT customer_id, COUNT(*) AS nbr_purchases
-    FROM customer_summary_mv
-    GROUP BY customer_id
-    ORDER BY nbr_purchases DESC
-    LIMIT 10
-),
-top_10_products AS (
-    SELECT product_nbr, COUNT(*) AS nbr_sales
-    FROM customer_summary_mv
-    GROUP BY product_nbr
-    ORDER BY nbr_sales DESC
-    LIMIT 10
-)
-SELECT customer_id, first_name, last_name, product_name, SUM(quantity) AS total_quantity FROM customer_summary_mv
-    JOIN top_10_customers USING (customer_id)
-    JOIN top_10_products USING (product_nbr)
-    WHERE date >= '2025-01-01' AND date < '2026-01-01'
-    GROUP BY customer_id, first_name, last_name, product_name
-    ORDER BY customer_id, product_name;
-
-
--- Create a CTE to find how many of the TOP 10 food items did my customers in Esch and Duedange buy in 2025?
-WITH top_10_products AS (
-    SELECT product_nbr, COUNT(*) AS nbr_sales
-    FROM customer_summary_mv
-    GROUP BY product_nbr
-    ORDER BY nbr_sales DESC
-    LIMIT 10
-)
-SELECT commune, product_name, SUM(quantity) AS total_quantity FROM customer_summary_mv
-    JOIN top_10_products USING (product_nbr)
-    WHERE date >= '2025-01-01' AND date < '2026-01-01'
-    AND commune IN ('Esch-sur-Alzette', 'Dudelange')
-    GROUP BY commune, product_name
-    ORDER BY commune, product_name;
-
-
-
 /* WINDOW FUNCTIONS */
 
 /*
@@ -642,17 +634,41 @@ Percentage of total sales by commune descending
 
 
 -- Putting the price of a product in comparision with the average price of the category
+
+SELECT c.name, p.name, p.price
+    FROM product p
+    JOIN category c ON p.category_id = c.id
+    ORDER BY c.name, p.name;
+
 SELECT c.name, p.name, p.price,
     ROUND(AVG(p.price) OVER (PARTITION BY c.name),2) AS avg_category
     FROM product p
-    JOIN category c ON p.category_id = c.id;
+    JOIN category c ON p.category_id = c.id
+    ORDER BY c.name, p.name;
 
-SELECT c.name, p.name, p.price,
-    ROUND(AVG(p.price) OVER (PARTITION BY c.name),2) AS avg_category,
-    ROUND(MIN(p.price) OVER (PARTITION BY c.name),2) AS min_category,
-    ROUND(MAX(p.price) OVER (PARTITION BY c.name),2) AS max_category
+SELECT c.name, p.name, p.price AS p_price,
+    ROUND(AVG(p.price) OVER (PARTITION BY c.name),2) AS c_avg,
+    ROUND(MIN(p.price) OVER (PARTITION BY c.name),2) AS c_min,
+    ROUND(MAX(p.price) OVER (PARTITION BY c.name),2) AS c_max
     FROM product p
-    JOIN category c ON p.category_id = c.id;
+    JOIN category c ON p.category_id = c.id
+    ORDER BY c.name, p.name;  
+
+-- Rank the products by price within their category
+SELECT c.name, p.name, p.price p_price,
+    ROUND(AVG(p.price) OVER (PARTITION BY c.name),2) AS c_avg,
+    ROUND(MIN(p.price) OVER (PARTITION BY c.name),2) AS c_min,
+    ROUND(MAX(p.price) OVER (PARTITION BY c.name),2) AS c_max,
+    RANK() OVER (PARTITION BY c.name ORDER BY p.price ASC) AS pp_rank
+    FROM product p
+    JOIN category c ON p.category_id = c.id
+    ORDER BY c.name, pp_rank ASC;
+
+-- Order communes by sales in descending order
+SELECT commune, SUM(price * quantity) AS total_sales
+    FROM customer_summary_mv
+    GROUP BY commune
+    ORDER BY total_sales DESC;
 
 -- Rank the total sales by commune in descending order
 SELECT commune, SUM(price * quantity) AS total_sales,
@@ -667,25 +683,67 @@ SELECT commune, SUM(price * quantity) AS total_sales,
     ROUND(SUM(price * quantity) * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS pct_total_sales
     FROM customer_summary_mv
     GROUP BY commune
-    ORDER BY total_sales DESC;  
+    ORDER BY total_sales DESC;    
 
- -- Rank the total sales by commune in descending order, and show the running total and the percentle of total sales by commune
-SELECT commune, SUM(price * quantity) AS total_sales,
-    RANK() OVER (ORDER BY SUM(price * quantity) DESC) AS sales_rank,
-    ROUND(SUM(price * quantity) * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS pct_total_sales,
-    SUM(SUM(price * quantity)) OVER (ORDER BY SUM(price * quantity) DESC) AS running_total_sales,
-    ROUND(SUM(SUM(price * quantity)) OVER (ORDER BY SUM(price * quantity) DESC) * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS running_pct_total_sales
+SELECT commune, SUM(price * quantity) AS total_sales
     FROM customer_summary_mv
     GROUP BY commune
-    ORDER BY total_sales DESC;   
+    ORDER BY total_sales DESC;        
 
--- same, but using a WINDOW AS expression to define the window for the running total and the percentle of total sales by commune
-SELECT commune, SUM(price * quantity) AS total_sales,
-    RANK() OVER (ORDER BY SUM(price * quantity) DESC) AS sales_rank,
-    ROUND(SUM(price * quantity) * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS pct_total_sales,
-    SUM(SUM(price * quantity)) OVER w AS running_total_sales,
-    ROUND(SUM(SUM(price * quantity)) OVER w * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS running_pct_total_sales
-    FROM customer_summary_mv
-    GROUP BY commune
-    WINDOW w AS (ORDER BY SUM(price * quantity) DESC)
-    ORDER BY total_sales DESC;
+-- Add a running total of sales by commune in descending order and show the percentage of total sales by commune
+SELECT commune,
+       SUM(price * quantity) AS total_sales,
+       RANK() OVER (
+                    ORDER BY SUM(price * quantity) DESC) AS sales_rank,
+       ROUND(SUM(price * quantity) * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS pct_total_sales,
+       SUM(SUM(price * quantity)) OVER w AS running_total,
+       ROUND(SUM(SUM(price * quantity)) OVER w * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS running_pct
+FROM customer_summary_mv
+GROUP BY commune WINDOW w AS (
+                              ORDER BY SUM(price * quantity) DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+ORDER BY total_sales DESC;
+
+-- excercise: Create a report that ranks the localities within Junglinster and Bech by 2026 sales, and shows the percentile ranking for each localite
+SELECT localite,
+       SUM(price * quantity) AS total_sales,
+       RANK() OVER (
+                    ORDER BY SUM(price * quantity) DESC) AS sales_rank,
+       ROUND(SUM(price * quantity) * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS pct_total_sales,
+       SUM(SUM(price * quantity)) OVER w AS running_total,
+       ROUND(SUM(SUM(price * quantity)) OVER w * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS running_pct
+FROM customer_summary_mv
+WHERE commune IN ('Junglinster', 'Bech')
+AND date >= '2026-01-01' AND date < '2027-01-01'
+GROUP BY localite WINDOW w AS (
+                              ORDER BY SUM(price * quantity) DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+ORDER BY total_sales DESC;
+
+-- Rank the individual customers within the commune of Junglinster by their total 2026 sales
+SELECT customer_id,
+       first_name,
+       last_name,
+       SUM(price * quantity) AS total_sales,
+       RANK() OVER (
+                    ORDER BY SUM(price * quantity) DESC) AS sales_rank
+FROM customer_summary_mv
+WHERE commune = 'Junglinster'
+AND date >= '2026-01-01' AND date < '2027-01-01'
+GROUP BY customer_id, first_name, last_name
+ORDER BY total_sales DESC;
+
+-- add a percentile ranking for each customer within the commune of Junglinster by their total 2026 sales
+SELECT customer_id,
+       first_name,
+       last_name,
+       SUM(price * quantity) AS total_sales,
+       RANK() OVER (
+                    ORDER BY SUM(price * quantity) DESC) AS sales_rank,
+       ROUND(SUM(price * quantity) * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS pct_total_sales,
+       SUM(SUM(price * quantity)) OVER w AS running_total,
+       ROUND(SUM(SUM(price * quantity)) OVER w * 100.0 / SUM(SUM(price * quantity)) OVER (), 2) AS running_pct
+FROM customer_summary_mv
+WHERE commune = 'Junglinster'
+AND date >= '2026-01-01' AND date < '2027-01-01'
+GROUP BY customer_id, first_name, last_name WINDOW w AS (
+                              ORDER BY SUM(price * quantity) DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+ORDER BY total_sales DESC;
