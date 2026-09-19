@@ -291,4 +291,169 @@ FOR v_product IN
 END;
 $$;
 
-CALL decrease_price_differentiated_2 ('Snack', 12);
+CALL reset_product_prices ();
+
+CALL decrease_price_differentiated_2 ('Snack', 1);
+
+-- Change the code so that it sets the price to 0.01 when the check constraint is violated. Update the message accordingly
+
+CREATE OR REPLACE PROCEDURE decrease_price_differentiated_3
+    (IN p_category_name TEXT, IN p_price_decrease NUMERIC)
+LANGUAGE PLPGSQL
+AS $$
+DECLARE 
+    v_product RECORD;
+    v_old_price NUMERIC;
+    v_new_price NUMERIC;
+	v_constraint text;
+BEGIN
+FOR v_product IN
+        SELECT product_nbr, product_name, category_name, product_price FROM product_category_vw
+        WHERE category_name = p_category_name
+    LOOP
+        BEGIN
+            UPDATE product
+                SET price = price - p_price_decrease
+                WHERE product_nbr = v_product.product_nbr
+                RETURNING OLD.price, NEW.price INTO v_old_price, v_new_price;
+            RAISE NOTICE 'Decreased price for % from % to % because it is a member of % category',
+                v_product.product_name, v_old_price, v_new_price, v_product.category_name;
+        EXCEPTION
+            WHEN check_violation THEN
+                GET STACKED DIAGNOSTICS
+		            v_constraint = constraint_name;
+	            RAISE NOTICE 'Price adjustment for % violated check constraint: %', 
+                    v_product.product_name,
+                    v_constraint;
+                IF  v_constraint = 'product_price_check' THEN
+                    UPDATE product
+                    SET price = 0.01 WHERE  product_nbr = v_product.product_nbr
+                        RETURNING OLD.price, NEW.price INTO v_old_price, v_new_price;
+                    RAISE NOTICE 'Decreased price for % from % to % because % is the mimum allowed price',
+                    v_product.product_name, v_old_price, v_new_price, v_new_price;
+                END IF;
+            WHEN OTHERS THEN
+                RAISE NOTICE 'unknown error';
+        END;
+    END LOOP;
+END;
+$$;
+
+CALL reset_product_prices ();
+CALL decrease_price_differentiated_3 ('Snack', 1);
+
+
+/*
+
+PL/Python
+
+*/
+
+-- make sure the extension exists
+CREATE EXTENSION IF NOT EXISTS plpython3u;
+
+
+-- Find all categories where the description is not capitalized (uses SQL)
+SELECT id, description FROM category
+   WHERE description = LOWER(description);
+
+-- Find all categories where the description is not capitalized, and 
+-- print the id and description in the console using a PL/Python stored procedure
+
+CREATE OR REPLACE PROCEDURE ensure_description_uppercase()
+AS $$
+import plpy
+rows = plpy.execute("SELECT id, description FROM category")
+for row in rows:
+   desc = row['description']
+   if desc and not desc[0].isupper():
+       plpy.notice("This description needs to be fixed: %s" % desc)
+$$ LANGUAGE plpython3u;  
+
+CALL ensure_description_uppercase();
+
+-- Find all lowercase descriptions and uppercase them
+
+CREATE OR REPLACE PROCEDURE ensure_description_uppercase()
+AS $$
+import plpy
+rows = plpy.execute("SELECT id, description FROM category")
+for row in rows:
+   desc = row['description']
+   if desc and not desc[0].isupper():
+       # Print the description that needs to be fixed
+       plpy.notice("This description needs to be fixed: %s" % desc)
+       # Capitalize the first letter of the description
+       new_desc = desc[0].upper() + desc[1:]
+       plpy.notice("Fixed: %s" % new_desc)
+       # Use % formatting and escape single quotes to create query string
+       update_sql = (
+           "UPDATE category "
+           "SET description = '%s' WHERE id = %d"
+       ) % (new_desc.replace("'", "''"), row['id'])
+       plpy.notice("Update query: %s" % update_sql)
+       plpy.execute(update_sql)
+$$ LANGUAGE plpython3u;
+
+
+CALL ensure_description_uppercase();
+
+-- Find all lowercase all descriptions
+
+CREATE OR REPLACE PROCEDURE ensure_description_lowercase()
+AS $$
+import plpy
+rows = plpy.execute("SELECT id, description FROM category")
+for row in rows:
+   desc = row['description']
+   if desc and not desc[0].islower():
+       # Print the description that needs to be fixed
+       plpy.notice("This description needs to be fixed: %s" % desc)
+       # Capitalize the first letter of the description
+       new_desc = desc[0].lower() + desc[1:]
+       plpy.notice("Fixed: %s" % new_desc)
+       # Use % formatting and escape single quotes to create query string
+       update_sql = (
+           "UPDATE category "
+           "SET description = '%s' WHERE id = %d"
+       ) % (new_desc.replace("'", "''"), row['id'])
+       plpy.notice("Update query: %s" % update_sql)
+       plpy.execute(update_sql)
+$$ LANGUAGE plpython3u;
+
+
+CALL ensure_description_lowercase();
+
+-- learn about error handline in PL/Python
+
+CREATE OR REPLACE FUNCTION insert_category(
+   p_id INTEGER,
+   p_label TEXT,
+   p_description TEXT
+)
+RETURNS TEXT
+AS $$
+import plpy
+from plpy import spiexceptions
+try:
+   sql = (
+       "INSERT INTO category (id, name, description) "
+       "VALUES (%d, '%s', '%s')"
+   ) % (
+       p_id,
+       p_label.replace("'", "''"),
+       p_description.replace("'", "''")
+   )
+   plpy.execute(sql)
+   return "Insert successful"
+except spiexceptions.UniqueViolation as e:
+   return "Unique constraint violation: " + str(e)
+except plpy.SPIError as e:
+   return "other error, SQLSTATE %s" % e.sqlstate
+except Exception as e:
+       return "Unknown error: " + str(e)
+$$ LANGUAGE plpython3u;
+
+SELECT insert_category(999, 'Test Category', 'This is a test category'); 
+SELECT insert_category(999, 'Test for PK violation', 'This is a test category'); 
+
