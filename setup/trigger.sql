@@ -130,3 +130,49 @@ UPDATE product SET price = 21.99 WHERE product_nbr = 'new_cheese';
 UPDATE product SET name = 'Super cheese' WHERE product_nbr = 'new_cheese';   
 
 SELECT * FROM product_price_history;
+
+-- Example of a statement-level trigger.
+CREATE OR REPLACE FUNCTION tr_product_count_notice_before () RETURNS TRIGGER
+AS
+$$
+DECLARE 
+    v_row_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO v_row_count FROM product;
+    RAISE NOTICE 'Statement trigger % fired for % on table %',
+        TG_NAME, TG_OP, TG_TABLE_NAME;
+    RAISE NOTICE 'Before executing, the table had % rows', v_row_count;
+    RETURN NULL;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE TRIGGER tr_product_statement_notice_before
+    BEFORE UPDATE OR INSERT OR DELETE OR TRUNCATE
+    ON product
+FOR EACH STATEMENT EXECUTE FUNCTION tr_product_count_notice_before();
+
+CREATE OR REPLACE FUNCTION tr_product_count_notice_after () RETURNS TRIGGER
+AS
+$$
+DECLARE 
+    v_row_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO v_row_count FROM product;
+    RAISE NOTICE 'Statement trigger % fired for % on table %',
+        TG_NAME, TG_OP, TG_TABLE_NAME;
+    RAISE NOTICE 'After executing, the table had % rows', v_row_count;
+    RETURN NULL;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE TRIGGER tr_product_statement_notice_after
+    AFTER UPDATE OR INSERT OR DELETE OR TRUNCATE
+    ON product
+FOR EACH STATEMENT EXECUTE FUNCTION tr_product_count_notice_after();
+
+-- Fires once for the UPDATE statement, even if it matches multiple rows.
+UPDATE product SET name = name WHERE product_nbr = 'new_cheese';
+
+INSERT INTO product (product_nbr, category_id, name, price) 
+    VALUES 
+        ('sausage', 5, 'Zosiss', 19.00);
