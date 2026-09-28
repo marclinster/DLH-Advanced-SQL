@@ -424,7 +424,7 @@ $$ LANGUAGE plpython3u;
 
 CALL ensure_description_lowercase();
 
--- learn about error handline in PL/Python
+-- learn about error handling in PL/Python
 
 CREATE OR REPLACE FUNCTION insert_category(
    p_id INTEGER,
