@@ -1,6 +1,6 @@
-CREATE TABLE IF NOT EXISTS public.cantons
+CREATE TABLE IF NOT EXISTS public.canton
 (
-    gid integer NOT NULL DEFAULT nextval('cantons_gid_seq'::regclass),
+    gid integer NOT NULL,
     objectid double precision,
     region character varying(50) COLLATE pg_catalog."default",
     code character varying(50) COLLATE pg_catalog."default",
@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS public.cantons
     fourcolor integer,
     geom geometry(MultiPolygon,4326),
     CONSTRAINT cantons_pkey PRIMARY KEY (gid)
-)
+);
 
 -- Index: public.cantons_geom_idx
 CREATE INDEX IF NOT EXISTS cantons_geom_idx
-    ON public.cantons USING gist
+    ON public.canton USING gist
     (geom)
     TABLESPACE pg_default;
