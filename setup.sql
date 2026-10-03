@@ -1,8 +1,8 @@
 /*
 
 Database setup script for the DLH Advanced SQL course. This script will create a new database called dlh_adv_sql, 
-enable the PostGIS extension, and set up the necessary tables and populate them with some random data.
-
+enable the PostGIS extension, and set up the necessary tables and populate them with data.
+Copyright Marc Linster, 2026
 
 */
 
@@ -14,6 +14,8 @@ enable the PostGIS extension, and set up the necessary tables and populate them 
 
 DROP DATABASE IF EXISTS dlh_adv_sql WITH (FORCE);
 CREATE DATABASE dlh_adv_sql;
+
+COMMENT ON DATABASE dlh_adv_sql IS 'Database for the DLH Advanced SQL course. Created by Marc Linster, 2026';
 
 \c dlh_adv_sql;
 
@@ -42,6 +44,9 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 
 \echo 'Setting up purchase table and populating it with some random data'
 \i setup/purchase.sql
+
+\echo 'Setting up store table and populating it with some random data'
+\i setup/store.sql
 
 
 /*

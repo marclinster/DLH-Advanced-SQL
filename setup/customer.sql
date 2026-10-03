@@ -34,7 +34,7 @@ BEGIN
         random_first_name := first_names[1 + floor(random() * array_length(first_names, 1))];
         random_last_name := last_names[1 + floor(random() * array_length(last_names, 1))];
         INSERT INTO customer (id, first_name, last_name, address_id, since, phone_numbers, email_addresses, social_media)
-        VALUES (i, random_first_name, random_last_name, NULL, CURRENT_DATE - (random() * 365)::INT, NULL, 
+        VALUES (i, random_first_name, random_last_name, NULL, CURRENT_DATE - (random() * 2* 365)::INT, NULL, 
                 jsonb_build_array(jsonb_build_object('email', random_first_name || '.' || random_last_name || '@example.com')), NULL);
     END LOOP;
 END;

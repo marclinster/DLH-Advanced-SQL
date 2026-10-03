@@ -1,4 +1,17 @@
+/*
 
+Initial recap of the SQL concepts covered in the intro course
+Copyright Marc Linster, 2026
+
+*/
+
+
+
+/*
+
+Computations in the SELECT clause
+
+*/ 
 
 SELECT * FROM customer;
 
@@ -62,7 +75,9 @@ SELECT FORMAT (
 	ORDER BY since ASC
 	LIMIT 1;
 
-SELECT * FROM customer;
+    /* Operators in the WHERE clause */ 
+
+SELECT * FROM customer; 
 SELECT * FROM customer WHERE id = 1;
 SELECT * FROM customer WHERE id = 1 OR id = 3;
 SELECT * FROM customer WHERE id IN (1,2);
@@ -101,6 +116,9 @@ SELECT * FROM customer
 	WHERE first_name LIKE 'Al%'
 	ORDER BY last_name ASC, first_name ASC;	
 
+
+/* ORDER BY and LIMIT */
+
 SELECT * FROM customer 
 	ORDER BY last_name ASC
 	LIMIT 3;
@@ -115,7 +133,28 @@ SELECT * FROM product;
 
 SELECT * FROM category;
 
--- problem 
+/*
+
+Create a query that
+    Selects customers from the customer table
+    Puts the name in the format ‘last name, first name’, e.g., Linster, Marc
+    Adds a columns entitled 'customer_since'
+    Sorts descending by last name, ascending by first name
+    Skips the first 20 customers
+    Shows 10 customers
+
+
+*/
+
+SELECT FORMAT ('%s, %s', last_name, first_name) AS customer_name,
+    since AS customer_since
+    FROM customer
+    ORDER BY last_name DESC, first_name ASC
+    OFFSET 20
+    LIMIT 10;
+
+
+-- problem 1
 INSERT INTO product (product_nbr, category_id, name, price) 
     VALUES 
         ('sandwich', 14, 'Ham and Cheese Sandwich', 0);
@@ -123,7 +162,23 @@ INSERT INTO product (product_nbr, category_id, name, price)
 -- Fixed (prive >0 and category_id exists in category table)        
 INSERT INTO product (product_nbr, category_id, name, price) 
     VALUES 
-        ('sandwich', 14, 'Ham and Cheese Sandwich', 9.99);
+        ('sandwich', 28, 'Ham and Cheese Sandwich', 9.99);
+
+-- Change the constraint to allow products with a price of 0, but not negative prices
+ALTER TABLE product
+    DROP CONSTRAINT product_price_check;
+
+ALTER TABLE product
+    ADD CONSTRAINT product_price_check CHECK (price >= 0);    
+
+-- problem 2
+-- add a new category called tools to satisfy the foreign key constraint for the product 'hammer'
+
+INSERT INTO product (product_nbr, category_id, name, price) 
+    VALUES 
+        ('hammer', 20, 'Hammer - 250gr', 19.99);       
+
+INSERT INTO category (id, name) VALUES (20, 'Tools');        
 
 /*
 
@@ -150,6 +205,7 @@ FROM customer c
 JOIN address a ON c.address_id = a.id
 LEFT JOIN purchase pu ON c.id = pu.customer_id
 LEFT JOIN product p ON pu.product_nbr = p.product_nbr
+WHERE pu.date >= '2025-01-01' AND pu.date < '2026-01-01'
 ORDER BY pu.date,
          c.last_name,
          c.first_name;
@@ -163,6 +219,7 @@ SELECT * FROM customer_summary_vw
         LIMIT 5; 
 
 DROP VIEW IF EXISTS customer_list_vw;
+
 
 CREATE VIEW customer_list_vw AS
 SELECT FORMAT ('%s, %s.', last_name, SUBSTRING (first_name, 1,1)) AS customer_name,
@@ -198,6 +255,7 @@ ORDER BY pu.date,
          c.first_name;
 
 
+-- new materialized view to explain the difference between a view and a materialized view
 
 DROP MATERIALIZED VIEW IF EXISTS customer_list_mw; 
 
@@ -209,10 +267,9 @@ SELECT FORMAT ('%s, %s.', last_name, SUBSTRING (first_name, 1,1)) AS customer_na
     FROM customer
     JOIN address ON customer.address_id = address.id;
 
-
 -- insert two customers living in Bridel
 
--- find two random Belval addresses
+-- find two random Bridel addresses
 SELECT * FROM address WHERE localite ILIKE 'Bridel' LIMIT 2;
 
 INSERT INTO customer (first_name, last_name, since, address_id) 
@@ -220,13 +277,14 @@ INSERT INTO customer (first_name, last_name, since, address_id)
         ('Paul', 'Test', '2025-10-12', 841),
         ('Paulette', 'Test', '2025-01-01', 947);
 
-DELETE FROM customer WHERE last_name Like 'Test%';
-
 SELECT * FROM customer_list_mw WHERE customer_name LIKE 'Test%';
 
 SELECT * FROM customer_list_vw WHERE customer_name LIKE 'Test%';
 
+DELETE FROM customer WHERE last_name Like 'Test%';
+
 REFRESH MATERIALIZED VIEW customer_list_mw;
+
 
 
 CREATE MATERIALIZED VIEW communes_localites_mv AS
@@ -359,6 +417,8 @@ SELECT EXTRACT(YEAR FROM date) AS year, EXTRACT(MONTH FROM date) AS month,
     AND commune = 'Junglinster'
     GROUP BY ROLLUP(year, month,  localite, product_name)
     ORDER BY year, month,  localite, product_name ASC;
+
+-- Compare CUBE and ROLLUP
 
 SELECT commune, localite, category_name, sum(price * quantity) AS total_sales
     FROM customer_summary_mv
