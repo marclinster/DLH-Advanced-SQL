@@ -12,6 +12,8 @@ Copyright Marc Linster, 2026
 
 \c postgres
 
+-- create the database dlh_adv_sql and enable PostGIS extension
+
 DROP DATABASE IF EXISTS dlh_adv_sql WITH (FORCE);
 CREATE DATABASE dlh_adv_sql;
 
@@ -48,6 +50,16 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 \echo 'Setting up store table and populating it with some random data'
 \i setup/store.sql
 
+
+\c postgres
+
+-- create the database rec_cte
+DROP DATABASE IF EXISTS rec_cte;
+CREATE DATABASE rec_cte;
+
+\c rec_cte;
+
+\i setup/rec_cte_dataset.sql
 
 /*
 DROP DATABASE IF EXISTS gis_sample;

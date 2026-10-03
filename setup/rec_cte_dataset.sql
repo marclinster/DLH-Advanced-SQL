@@ -1,12 +1,9 @@
 /****************************************************************************************************
 Sample SQL files for the class 'Advanced SQL with Postgres'
 2026 Copyright: Marc Linster
-Last updated Sep 11 2026
+Last updated Oct 3 2026
 ****************************************************************************************************/
 
-DROP DATABASE IF EXISTS rec_cte;
-CREATE DATABASE rec_cte;
-\c rec_cte;
 
 
 -- sample data for a simple recursive CTE
