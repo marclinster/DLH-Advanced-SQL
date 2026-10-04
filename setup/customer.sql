@@ -157,3 +157,61 @@ END;
 $$;
 
 call assign_random_email_addresses_to_customers();
+
+/* assign random social media accounts to customers, with the following structure:
+
+    {
+        "work": {
+            "Twitter": "work_twitter_1",
+            "LinkedIn": "work_linkedin_1"
+        },
+        "personal": {
+            "Twitter": "personal_twitter_1",
+            "LinkedIn": "personal_linkedin_1"
+        }
+    }
+Only 30% of the customers should have a social media account, 
+with 20% of those having a second Twitter account for work and personal, with a different handle, 
+and 50% of those having a second LinkedIn account for work and personal, with a different handle.
+*/
+CREATE OR REPLACE PROCEDURE assign_random_social_media_to_customers()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    customer_id INT;
+    social_media_json JSONB;
+BEGIN
+    FOR customer_id IN SELECT id FROM customer LOOP
+        IF random() < 0.3 THEN
+            social_media_json := jsonb_build_object(
+                'work', jsonb_build_object(
+                    'Twitter', 'work_twitter_' || customer_id,
+                    'LinkedIn', 'work_linkedin_' || customer_id
+                ),
+                'personal', jsonb_build_object(
+                    'Twitter', 'personal_twitter_' || customer_id,
+                    'LinkedIn', 'personal_linkedin_' || customer_id
+                )
+            );
+            -- Assign 20% of the customers a second Twitter account for work and personal, with a different handle
+            IF random() < 0.2 THEN
+                social_media_json := jsonb_set(social_media_json, '{work,Twitter}', to_jsonb('work_twitter_' || (customer_id + 1000))) ||
+                                     jsonb_set(social_media_json, '{personal,Twitter}', to_jsonb('personal_twitter_' || (customer_id + 1000)));
+            END IF;
+            -- Assign 50% of the customers a second LinkedIn account for work and personal, with a different handle
+            IF random() < 0.5 THEN
+                social_media_json := jsonb_set(social_media_json, '{work,LinkedIn}', to_jsonb('work_linkedin_' || (customer_id + 1000))) ||
+                                     jsonb_set(social_media_json, '{personal,LinkedIn}', to_jsonb('personal_linkedin_' || (customer_id + 1000)));
+            END IF;
+            UPDATE customer
+            SET social_media = social_media_json
+            WHERE id = customer_id;
+        END IF;
+    END LOOP;
+END;
+$$; 
+
+CALL assign_random_social_media_to_customers();
+
+SELECT * FROM customer LIMIT 10;
+
