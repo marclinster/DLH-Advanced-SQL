@@ -154,6 +154,40 @@ SELECT FORMAT ('%s, %s', last_name, first_name) AS customer_name,
     LIMIT 10;
 
 
+/* 
+
+DDL Recap
+
+*/
+
+CREATE TABLE IF NOT EXISTS test_table (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+ALTER TABLE test_table ADD CONSTRAINT test_table_name_unique UNIQUE (name) ;
+
+ALTER TABLE test_table DROP CONSTRAINT test_table_name_unique;
+
+ALTER TABLE test_table ADD CONSTRAINT test_table_name_check CHECK (name <> '');
+
+ALTER TABLE test_table ADD COLUMN description TEXT;
+
+ALTER TABLE test_table RENAME COLUMN description TO details;
+
+ALTER TABLE test_table RENAME TO test_table_renamed;
+
+DROP TABLE IF EXISTS test_table_renamed;
+
+
+/*
+
+Primary Keys, Foreign Keys, and Constraints
+
+*/
+
+
 -- problem 1
 INSERT INTO product (product_nbr, category_id, name, price) 
     VALUES 
