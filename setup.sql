@@ -54,17 +54,29 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 \c postgres
 
 -- create the database rec_cte
-DROP DATABASE IF EXISTS rec_cte;
+DROP DATABASE IF EXISTS rec_cte WITH (FORCE);
 CREATE DATABASE rec_cte;
 
 \c rec_cte;
 
 \i setup/rec_cte_dataset.sql
 
-/*
-DROP DATABASE IF EXISTS gis_sample;
+
+DROP DATABASE IF EXISTS gis_sample WITH (FORCE);
 CREATE DATABASE gis_sample;
 
+\c gis_sample
+
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+\i setup/gis_sample.sql
+
+-- add data about cantons
+\i setup/canton.sql
+\i setup/canton-data.sql
+
+
+/*
 DROP DATABASE IF EXISTS rec_cte;
 CREATE DATABASE rec_cte;
 */
