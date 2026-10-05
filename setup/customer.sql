@@ -212,6 +212,3 @@ END;
 $$; 
 
 CALL assign_random_social_media_to_customers();
-
-SELECT * FROM customer LIMIT 10;
-
