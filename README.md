@@ -8,6 +8,8 @@ This repository contains material for a PostgreSQL and PostGIS-focused advanced 
 - `setup/` contains the schema and seed data for the main training database.
 - `class/` contains SQL exercises and examples by topic.
 - `cnt_adv_sql/` contains Docker-based setup assets.
+- `raw_data/` contains source files used for the data import examples.
+- `bup/` contains backup files and historical snapshots.
 
 ## Course topics
 
@@ -72,6 +74,8 @@ If your database user differs, adapt the connection parameters accordingly.
 │   ├── 03-JSONB.sql
 │   ├── 04-window_function.sql
 │   └── 05-gis.sql
+├── raw_data/
+├── bup/
 ├── cnt_adv_sql/
 └── ...
 ```
@@ -79,3 +83,4 @@ If your database user differs, adapt the connection parameters accordingly.
 ## License
 
 This project is licensed under the Creative Commons Attribution 4.0 International License. See [LICENSE](LICENSE) for details.
+
