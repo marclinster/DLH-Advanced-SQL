@@ -2,14 +2,15 @@
 
 This repository contains material for a PostgreSQL and PostGIS-focused advanced SQL course, with hands-on examples for data modeling, recursion, window functions, GIS analysis, and database setup.
 
+Copyright Marc Linster
+Last updated Oct 6, 2026
+
 ## What is in this repo?
 
 - `setup.sql` builds the course databases and loads the sample data.
 - `setup/` contains the schema and seed data for the main training database.
 - `class/` contains SQL exercises and examples by topic.
 - `cnt_adv_sql/` contains Docker-based setup assets.
-- `raw_data/` contains source files used for the data import examples.
-- `bup/` contains backup files and historical snapshots.
 
 ## Course topics
 
@@ -74,8 +75,6 @@ If your database user differs, adapt the connection parameters accordingly.
 │   ├── 03-JSONB.sql
 │   ├── 04-window_function.sql
 │   └── 05-gis.sql
-├── raw_data/
-├── bup/
 ├── cnt_adv_sql/
 └── ...
 ```
