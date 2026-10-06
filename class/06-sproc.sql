@@ -421,7 +421,7 @@ for row in rows:
    if desc and not desc[0].islower():
        # Print the description that needs to be fixed
        plpy.notice("This description needs to be fixed: %s" % desc)
-       # Capitalize the first letter of the description
+       # Convert the first letter of the description to lowercase
        new_desc = desc[0].lower() + desc[1:]
        plpy.notice("Fixed: %s" % new_desc)
        # Use % formatting and escape single quotes to create query string
