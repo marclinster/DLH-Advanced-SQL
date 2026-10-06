@@ -1,13 +1,16 @@
 
+/***************************************************************************************************
 
-/* 
+Database setup script for the DLH Advanced SQL course. This file provides
+an overview of window functions in SQL.
 
+The examples use the database dlh_adv_sql, which is created by the setup.sql script.
 
-WINDOW FUNCTIONS 
-run against database dlh_adv_sql
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
 
+****************************************************************************************************/
 
-*/
 
 -- make sure that this view exists, if not create it
 DROP MATERIALIZED VIEW IF EXISTS customer_summary_mv;

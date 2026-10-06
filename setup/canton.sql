@@ -1,3 +1,16 @@
+/***************************************************************************************************
+
+Defines a table to manage the cantons of Luxembourg. The table is used in the GIS section of the course.
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
+
+
+
+
+
 CREATE TABLE IF NOT EXISTS public.canton
 (
     gid integer NOT NULL,

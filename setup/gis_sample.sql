@@ -1,3 +1,14 @@
+/***************************************************************************************************
+
+Creates a table for campus buildings and inserts sample data. It also creates a table for the boundary 
+of Esch-sur-Alzette and inserts sample polygon data.
+
+This table is used in the GIS section of the course.
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
 
 
 CREATE TABLE IF NOT EXISTS campus_buildings (
@@ -6,11 +17,11 @@ CREATE TABLE IF NOT EXISTS campus_buildings (
     geog GEOGRAPHY(POINT, 4326)
 );
 
-INSERT INTO campus_buildings (name, geog)
-VALUES ('DLH Terre Rouge', 
-            ST_GeographyFromText('POINT(5.944808740642141 49.504213091686786)')),
-       ('Technoport Belval', 
-            ST_GeographyFromText('POINT(5.949105782061126 49.50228582007102)'));
+
+INSERT INTO public.campus_buildings VALUES (1, 'DLH Terre Rouge', '0101000020E6100000BB2148F17BC717404181F90D8AC04840');
+INSERT INTO public.campus_buildings VALUES (2, 'Technoport Belval', '0101000020E61000009296D962E2CB17408C39D9E64AC04840');
+INSERT INTO public.campus_buildings VALUES (3, 'Kirchberg Campus', '0101000020E6100000879F3FE128A31840541CB14B38D04840');
+
 
 
 CREATE TABLE IF NOT EXISTS esch_boundary_geog (

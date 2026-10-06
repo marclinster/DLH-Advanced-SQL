@@ -1,10 +1,16 @@
-/*
+/*****************************************************************************************************
 
-Database setup script for the DLH Advanced SQL course. This script will create a new database called dlh_adv_sql, 
-enable the PostGIS extension, and set up the necessary tables and populate them with data.
-Copyright Marc Linster, 2026
+Database setup script for the DLH Advanced SQL course. This script will 
+* create new databases called dlh_adv_sql, rec_cte, gis_sample, and acid_test.
+* add the postgis and plpython3u extensions, and load the necessary tables and data for the course.
 
-*/
+This couse requires PostgreSQL 18 or higher, with the PostGIS extension installed. 
+The course will use the databases dlh_adv_sql, rec_cte, gis_sample, and acid_test.
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
 
 
 
@@ -75,9 +81,9 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 \i setup/canton.sql
 \i setup/canton-data.sql
 
+\c postgres;
+DROP DATABASE IF EXISTS acid_test WITH (FORCE);
+CREATE DATABASE acid_test;
 
-/*
-DROP DATABASE IF EXISTS rec_cte;
-CREATE DATABASE rec_cte;
-*/
+\c dlh_adv_sql;
 

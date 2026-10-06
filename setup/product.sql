@@ -1,3 +1,15 @@
+/***************************************************************************************************
+
+Creates the table product and loads sample data into it. 
+
+The sproc reset_product_prices() is also created to reset the prices of the products to their original values.
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
+
+
 DROP TABLE IF EXISTS product CASCADE;
 
 CREATE TABLE product (

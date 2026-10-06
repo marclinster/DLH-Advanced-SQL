@@ -1,7 +1,12 @@
-/****************************************************************************************************
-Sample SQL files for the class 'Advanced SQL with Postgres'
+/***************************************************************************************************
+
+Creates a small data set to illustrate the use of recursive CTEs. The data set contains a simple 
+employee table with a manager_id column to indicate the manager of each employee.
+
+
 2026 Copyright: Marc Linster
-Last updated Oct 3 2026
+Last updated Oct 6, 2026
+
 ****************************************************************************************************/
 
 

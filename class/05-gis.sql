@@ -1,8 +1,15 @@
-/*
+/***************************************************************************************************
 
-PostGIS example
+Database setup script for the DLH Advanced SQL course. This file provides
+an overview of PostGIS
 
-*/ 
+The examples use the database gis_sample, which is created by the setup.sql script.
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
+
 
 SELECT * FROM campus_buildings;
 

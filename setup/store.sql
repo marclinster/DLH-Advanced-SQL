@@ -1,4 +1,12 @@
-/* list of stores in Luxembourg with their address */
+/***************************************************************************************************
+
+Creates a table for stores and inserts sample data. 
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
+
 
 DROP TABLE IF EXISTS store;
 

@@ -1,9 +1,15 @@
-/*
 
-Initial recap of the SQL concepts covered in the intro course
-Copyright Marc Linster, 2026
+/***************************************************************************************************
 
-*/
+Database setup script for the DLH Advanced SQL course. This script will 
+provide an initial recap of the SQL concepts covered in the intro course.
+
+The examples use the database dlh_adv_sql, which is created by the setup.sql script.
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
 
 
 

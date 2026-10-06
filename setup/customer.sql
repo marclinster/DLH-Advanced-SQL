@@ -1,3 +1,19 @@
+/***************************************************************************************************
+
+Defines a table to manage product customers for the Luxembourg market. 
+
+By default, it generates 5000 random customers with random first and last names, 
+random addresses (picked from the address table), random phone numbers, random email addresses, and random social media accounts.
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
+
+
+
+
+
 DROP TABLE IF EXISTS customer CASCADE;
 
 CREATE TABLE customer  (

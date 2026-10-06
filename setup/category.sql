@@ -1,3 +1,15 @@
+/***************************************************************************************************
+
+Defines a table to manage product categories for the Luxembourg market. 
+
+2026 Copyright: Marc Linster
+Last updated Oct 6, 2026
+
+****************************************************************************************************/
+
+
+
+
 DROP TABLE IF EXISTS category;
 
 CREATE TABLE category (
