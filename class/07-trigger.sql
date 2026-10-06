@@ -175,3 +175,15 @@ INSERT INTO product (product_nbr, category_id, name, price)
     VALUES 
         ('sausage2', 5, 'Grouss Zosiss', 19.00),
         ('sausage1', 5, 'Kleng Zosiss', 5.00)
+
+-- Drop all the row-level triggers
+
+DROP TRIGGER tr_product_change ON product;
+DROP TRIGGER tr_product_delete ON product;
+DROP TRIGGER tr_product_price_round ON product;
+DROP TRIGGER tr_product_price_update ON product;
+
+INSERT INTO product (product_nbr, category_id, name, price) 
+    VALUES 
+        ('sausage3', 5, 'Mettwurscht', 19.00),
+        ('sausage4', 5, 'Grillwurst', 5.00);
