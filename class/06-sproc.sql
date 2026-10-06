@@ -23,12 +23,18 @@ AS $$
     AND category.name = p_category;
 $$; 
 
-
+-- check the current price
 SELECT * FROM product JOIN category ON product.category_id = category.id WHERE category.name = 'Food';
 
+-- run the sprocedure to increase the price of all products in the Food category by 1.00
 CALL increase_price ('Food', 1.00);
 
+-- check the new price
+SELECT * FROM product JOIN category ON product.category_id = category.id WHERE category.name = 'Food';
+
 --- simple procedure to increase price of all products in a category by a fixed amount
+-- this procedure shows a simple iteration through a query result and how to use the values in the result in an update statement.
+
 CREATE OR REPLACE PROCEDURE increase_price2 (IN p_category TEXT, IN p_increase NUMERIC) 
 LANGUAGE PLPGSQL AS 
 $$
@@ -187,11 +193,15 @@ $$
         CASE p_op
             WHEN 'addition' THEN v_result = p1 + p2;
             WHEN 'multiplication' THEN v_result = p1 * p2;
-            ELSE v_result = 0;
+            ELSE v_result = -1;
         END CASE;
         RETURN v_result;
     END;
 $$ LANGUAGE PLPGSQL;
+
+SELECT * FROM my_math2(2,3, 'multiplication');
+SELECT * FROM my_math2(2,3, 'addition');
+SELECT * FROM my_math2(2,3, 'other');
 
 
 /* understanding what a query returns and how to use it in a procedure */
@@ -291,6 +301,8 @@ FOR v_product IN
 END;
 $$;
 
+-- reset the prices to their original values before running the procedure
+-- this is defined in the setup.sql file
 CALL reset_product_prices ();
 
 CALL decrease_price_differentiated_2 ('Snack', 1);
