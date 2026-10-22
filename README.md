@@ -37,8 +37,10 @@ The script also enables PostgreSQL extensions such as PostGIS.
 ## Prerequisites
 
 - PostgreSQL 18 or newer
-- PostGIS extension installed
+- PostGIS and PLPython3u extensions installed
 - `psql` available on your system
+
+I teach this class using the Docker container defined in `/cnt_adv_sql`.
 
 ## Quick start
 
